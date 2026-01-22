@@ -1,0 +1,75 @@
+/* ... keep your existing body/main styles ... */
+
+/* Navigation Styling */
+nav {
+    text-align: right; /* Requires Nav in top right corner */
+    padding: 10px 20px;
+    background-color: #f8f9fa; /* Different color from page */
+    margin-bottom: 20px;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-left: 15px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+nav a:hover {
+    color: #007bff;
+}
+
+/* REQUIRED: Highlight current tab */
+nav a.active {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Profile Layout: Bio Left, Image Right */
+.profile-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    text-align: left;
+}
+
+.bio-text {
+    flex: 2;
+}
+
+.bio-image {
+    flex: 1;
+    text-align: center;
+}
+
+.bio-image img {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+/* Contact Info Styling */
+.contact-info ul {
+    list-style: none;
+    padding: 0;
+}
+
+.project-card {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: left;
+    margin-top: 20px;
+}

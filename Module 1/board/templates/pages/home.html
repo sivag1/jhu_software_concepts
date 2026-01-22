@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h2>{% block title %}Home{% endblock title %}</h2>
+{% endblock header %}
+
+{% block content %}
+  <div class="profile-container">
+    <div class="bio-text">
+      <h3>Siva G</h3>
+      <h4>Lifelong Student</h4>
+      <p>
+        Welcome to my personal site! I am a passionate developer learning Flask 
+        and Python. This site showcases my projects and provides a way to 
+        contact me. Feel free to explore and reach out!
+      </p>
+    </div>
+    
+    <div class="bio-image">
+      <img src="{{ url_for('static', filename='profile.jfif') }}" alt="Profile Picture">
+    </div>
+  </div>
+{% endblock content %}
