@@ -4,7 +4,7 @@ This module provides functionality to clean and standardize raw applicant data
 scraped from The GradCafe website. It removes HTML remnants, normalizes missing
 data, and parses statistical information (GPA, GRE scores, etc.) from raw text.
 
-Author: [Your Name]
+Author: Siva Govindarajan
 Date: January 2026
 """
 

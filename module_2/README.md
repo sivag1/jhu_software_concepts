@@ -1,3 +1,17 @@
+Name: Siva Govindarajan
+JHED ID: sgovind9
+
+Module 2 - Assignment: Web Scraping
+Due: Sunday 2/1 11:59PM ET
+
+Approach:
+Read the grad cafe url page by page. The rows are mix of multiple types of datatypes. Determine line by line and add key columns. Add the rest to a raw column.
+In the clean process, update more columns parsed from the raw column.
+Provided app.py is updated for this clean data from previous step.
+
+Known Limitations:
+The scraper completely relies on certain assumed format of data table in the grad cafe portal. Any changes, will break the scraping code.
+
 Module 2 — GradCafe Scraper
 =================================
 

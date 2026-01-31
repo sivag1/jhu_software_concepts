@@ -5,7 +5,7 @@ The GradCafe website (https://www.thegradcafe.com/survey/index.php) and store
 the results in JSON format. It respects robots.txt and includes rate limiting
 to avoid overloading the server.
 
-Author: [Your Name]
+Author: Siva Govindarajan
 Date: January 2026
 """
 
