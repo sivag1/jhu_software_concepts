@@ -4,3 +4,4 @@ __pycache__/
 .vscode/
 module_2/llm_hosting/models/
 drafts/
+.DS_Store

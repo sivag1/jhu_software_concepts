@@ -84,6 +84,8 @@ SYSTEM_PROMPT = (
     "  standardized_program, standardized_university\n"
 )
 
+
+# I made changes here, so my data from cleaned_application_data is correctly processed.
 FEW_SHOTS: List[Tuple[Dict[str, str], Dict[str, str]]] = [
     (
         {"program": "Information Studies", "university": "McGill University"},

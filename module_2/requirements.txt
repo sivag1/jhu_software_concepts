@@ -1,2 +1,4 @@
+# Python requirement for this module
+# Tested with Python 3.10+
 urllib3
 beautifulsoup4
