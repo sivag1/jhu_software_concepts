@@ -81,11 +81,11 @@ def load_data():
                 entry.get('date_added') or None,
                 entry.get('url'),
                 entry.get('gpa'),
-                entry.get('gre'),
-                entry.get('gre_v'),
-                entry.get('gre_aw'),
-                entry.get('llm_generated_program'),
-                entry.get('llm_generated_university')
+                entry.get('greScore'),
+                entry.get('greV'),
+                entry.get('greAW'),
+                entry.get('llm-generated-program'),
+                entry.get('llm-generated-university')
             ))
 
         conn.commit()
