@@ -23,8 +23,8 @@ def run_analysis_queries():
     cur = conn.cursor()
     results = {}
 
-    # 1. Fall 2025 entries
-    cur.execute("SELECT COUNT(*) FROM applicants WHERE term = 'Fall 2025';")
+    # 1. Fall 2026 entries
+    cur.execute("SELECT COUNT(*) FROM applicants WHERE term = 'Fall 2026';")
     results['q1'] = cur.fetchone()[0]
 
     # 2. % International students (not American or Other)
@@ -44,25 +44,25 @@ def run_analysis_queries():
         'gre_aw': round(metrics[3], 2) if metrics[3] else 0
     }
 
-    # 4. Average GPA of American students in Fall 2025
+    # 4. Average GPA of American students in Fall 2026
     cur.execute("""
         SELECT AVG(gpa) FROM applicants 
-        WHERE us_or_international = 'American' AND term = 'Fall 2025';
+        WHERE us_or_international = 'American' AND term = 'Fall 2026';
     """)
     res4 = cur.fetchone()[0]
     results['q4'] = round(res4, 2) if res4 else 0
 
-    # 5. % Acceptances for Fall 2025
+    # 5. % Acceptances for Fall 2026
     cur.execute("""
-        SELECT ROUND((COUNT(*) FILTER (WHERE status ILIKE '%Accepted%' AND term = 'Fall 2025') * 100.0) / 
-        NULLIF(COUNT(*) FILTER (WHERE term = 'Fall 2025'), 0), 2) FROM applicants;
+        SELECT ROUND((COUNT(*) FILTER (WHERE status ILIKE '%Accepted%' AND term = 'Fall 2026') * 100.0) / 
+        NULLIF(COUNT(*) FILTER (WHERE term = 'Fall 2026'), 0), 2) FROM applicants;
     """)
     results['q5'] = cur.fetchone()[0]
 
-    # 6. Average GPA of Fall 2025 Acceptances
+    # 6. Average GPA of Fall 2026 Acceptances
     cur.execute("""
         SELECT AVG(gpa) FROM applicants 
-        WHERE term = 'Fall 2025' AND status ILIKE '%Accepted%';
+        WHERE term = 'Fall 2026' AND status ILIKE '%Accepted%';
     """)
     res6 = cur.fetchone()[0]
     results['q6'] = round(res6, 2) if res6 else 0
@@ -93,15 +93,19 @@ def run_analysis_queries():
     """)
     results['q9'] = cur.fetchone()[0]
 
+     # Total Records
+    cur.execute("SELECT COUNT(*) FROM applicants;")
+    total_records = cur.fetchone()[0]
+
     cur.close()
     conn.close()
-    return results
+    return results, total_records
 
 @app.route('/')
 def index():
     # This fulfills Part A by passing query results to the template
-    analysis_results = run_analysis_queries()
-    return render_template('index.html', results=analysis_results)
+    analysis_results, total_records = run_analysis_queries()
+    return render_template('index.html', results=analysis_results, total_records=total_records)
 
 @app.route('/pull_data', methods=['POST'])
 def pull_data():
