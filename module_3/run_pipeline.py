@@ -1,9 +1,26 @@
+"""
+Module to orchestrate the full data processing pipeline.
+
+This script runs the scraper, cleaner, LLM processor, and data loader in sequence.
+It handles execution of subprocesses and error checking.
+"""
 import subprocess
 import sys
 import os
 
 def run_step(script_name, script_path, args=None):
-    """Runs a python script and checks for errors."""
+    """
+    Runs a python script and checks for errors.
+
+    Args:
+        script_name (str): Display name of the step.
+        script_path (str): Absolute path to the script file.
+        args (list, optional): List of command-line arguments.
+
+    Raises:
+        FileNotFoundError: If the script path does not exist.
+        RuntimeError: If the subprocess returns a non-zero exit code.
+    """
     print(f"--- Starting: {script_name} ---")
     
     if not os.path.exists(script_path):
@@ -23,6 +40,7 @@ def run_step(script_name, script_path, args=None):
         raise RuntimeError(f"Script {script_name} failed with exit code {e.returncode}")
 
 def run_full_pipeline():
+    """Executes the complete data pipeline: Scrape -> Clean -> LLM -> Load."""
     # Get the directory where this script is located (module_3)
     base_dir = os.path.dirname(os.path.abspath(__file__))
 

@@ -1,3 +1,9 @@
+"""
+Module to query the applicant database and generate analysis metrics.
+
+This script connects to the PostgreSQL database and executes various SQL queries
+to answer specific questions about the applicant data.
+"""
 import psycopg2
 import os
 from dotenv import load_dotenv
@@ -13,6 +19,15 @@ DB_PARAMS = {
 }
 
 def run_queries():
+    """
+    Executes a series of SQL queries to analyze applicant data.
+
+    Calculates metrics including:
+    - Total entries for specific terms.
+    - Demographics (International vs American).
+    - Average GPA and GRE scores.
+    - Acceptance rates.
+    """
     conn = None
     try:
         conn = psycopg2.connect(**DB_PARAMS)

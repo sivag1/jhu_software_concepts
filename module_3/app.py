@@ -1,3 +1,9 @@
+"""
+Flask application for the Grad School Cafe Data Analysis dashboard.
+
+This module provides a web interface to view analysis results and trigger
+the data ingestion pipeline.
+"""
 import os
 import subprocess
 from flask import Flask, render_template, request, redirect, url_for, flash
@@ -11,6 +17,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_key")
 
 def get_db_connection():
+    """Establishes and returns a connection to the PostgreSQL database."""
     return psycopg2.connect(
         host=os.getenv("DB_HOST"),
         database=os.getenv("DB_NAME"),
@@ -19,6 +26,12 @@ def get_db_connection():
     )
 
 def run_analysis_queries():
+    """
+    Runs analytical queries against the database for the dashboard.
+
+    Returns:
+        tuple: A dictionary of query results and the total record count.
+    """
     conn = get_db_connection()
     cur = conn.cursor()
     results = {}
@@ -103,12 +116,19 @@ def run_analysis_queries():
 
 @app.route('/')
 def index():
+    """Renders the main dashboard page with analysis results."""
     # This fulfills Part A by passing query results to the template
     analysis_results, total_records = run_analysis_queries()
     return render_template('index.html', results=analysis_results, total_records=total_records)
 
 @app.route('/pull_data', methods=['POST'])
 def pull_data():
+    """
+    Route to trigger the background data pipeline.
+
+    Executes the full pipeline and redirects back to the index page
+    with a status message.
+    """
     try:
         # Run the data pipeline (Scrape -> Clean -> LLM -> Load)
         run_full_pipeline()

@@ -1,3 +1,9 @@
+"""
+Module to load new applicant data into the existing PostgreSQL database.
+
+This script reads a JSON file, checks for existing records to avoid duplicates
+based on URL, and inserts new records into the 'applicants' table.
+"""
 import psycopg2
 import json
 import os
@@ -16,6 +22,15 @@ DB_PARAMS = {
 }
 
 def load_new_records():
+    """
+    Loads new records from a JSON file into the database.
+
+    Steps:
+    1. Reads the JSON file.
+    2. Connects to the database.
+    3. Checks for existing URLs to prevent duplicates.
+    4. Inserts new unique records.
+    """
     conn = None
     try:
         # 1. Load Data from JSON file
