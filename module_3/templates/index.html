@@ -118,6 +118,12 @@
             background-color: #219150;
         }
 
+        .btn:disabled {
+            background-color: #95a5a6 !important;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
         .description {
             font-size: 0.85em;
             color: #7f8c8d;
@@ -155,7 +161,7 @@
 
         <div class="analysis-section">
             <div class="result-card">
-                <span class="question">How many entries are in the database for Fall 2025?</span>
+                <span class="question">How many entries are in the database for Fall 2026?</span>
                 <span class="answer">Answer: {{ results.q1 }} entries</span>
             </div>
 
@@ -173,17 +179,17 @@
             </div>
 
             <div class="result-card">
-                <span class="question">Average GPA of American students in Fall 2025:</span>
+                <span class="question">Average GPA of American students in Fall 2026:</span>
                 <span class="answer">Answer: {{ results.q4 }}</span>
             </div>
 
             <div class="result-card">
-                <span class="question">Acceptance rate for Fall 2025 entries:</span>
+                <span class="question">Acceptance rate for Fall 2026 entries:</span>
                 <span class="answer">Answer: {{ results.q5 }}%</span>
             </div>
 
             <div class="result-card">
-                <span class="question">Average GPA of Fall 2025 Acceptances:</span>
+                <span class="question">Average GPA of Fall 2026 Acceptances:</span>
                 <span class="answer">Answer: {{ results.q6 }}</span>
             </div>
 
@@ -201,7 +207,7 @@
         <div class="actions-section">
             <div class="action-box">
                 <form action="/pull_data" method="post"
-                    onsubmit="const btn = this.querySelector('button'); btn.disabled = true; btn.innerText = 'Running Pipeline... (Please Wait)';">
+                    onsubmit="const btn = this.querySelector('button'); btn.disabled = true; btn.innerText = 'Running Pipeline... (Please Wait)'; const updateBtn = document.querySelector('.btn-update'); if(updateBtn) updateBtn.disabled = true;">
                     <button type="submit" class="btn btn-pull">Pull Data</button>
                     <p class="description">Scrapes the newest available data from Grad Cafe and adds it to your database
                         in the background.</p>

@@ -112,7 +112,7 @@ def pull_data():
     try:
         # Run the data pipeline (Scrape -> Clean -> LLM -> Load)
         run_full_pipeline()
-        flash("Data pull completed successfully! New records have been added.", "success")
+        flash("Data pull completed successfully!", "success")
     except Exception as e:
         flash(f"Data pull failed: {str(e)}", "error")
     return redirect(url_for('index'))
