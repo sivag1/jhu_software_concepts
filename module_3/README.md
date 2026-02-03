@@ -46,6 +46,8 @@ Use the command below
 python app.py
 ```
 
+Open your browser and navigate to `http://localhost:5000`.
+
 The page has two buttons. The Pull Data button loads any new data from the Grad Cafe. It does all the steps we did in Module 2, sequentially, and then load the new records to the DB.
 
 The Update Analysis simply refreshes the page to reload the query results.
