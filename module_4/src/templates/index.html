@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grad School Cafe Data Analysis</title>
+    <style>
+        /* General Page Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 40px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Header Styling */
+        header {
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 28px;
+        }
+
+        h2 {
+            color: #7f8c8d;
+            font-size: 18px;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+
+        /* Results Section Styling */
+        .analysis-section {
+            margin-bottom: 40px;
+        }
+
+        .result-card {
+            background: #fff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            border-color: #3498db;
+        }
+
+        .question {
+            font-weight: bold;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .answer {
+            color: #27ae60;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        /* Part B: Action Buttons Styling */
+        .actions-section {
+            display: flex;
+            gap: 20px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .action-box {
+            flex: 1;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .btn-pull {
+            background-color: #e67e22;
+            color: white;
+        }
+
+        .btn-pull:hover {
+            background-color: #d35400;
+        }
+
+        .btn-update {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-update:hover {
+            background-color: #219150;
+        }
+
+        .btn:disabled {
+            background-color: #95a5a6 !important;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .description {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        /* Notification Styling */
+        .alert {
+            padding: 15px;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Grad School Cafe Data Analysis</h1>
+            <h2>Module 3: Database Queries & Visualization</h2>
+        </header>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="analysis-section">
+            <div class="result-card">
+                <span class="question">How many entries are in the database for Fall 2026?</span>
+                <span class="answer">Answer: {{ results.q1 }} entries</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">Percentage of International student entries (excluding American/Other):</span>
+                <span class="answer">Answer: {{ results.q2 }}%</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">Average Metrics (GPA, GRE Quant, GRE Verbal, GRE AW):</span>
+                <span class="answer">
+                    GPA: {{ results.q3.gpa }} | GRE: {{ results.q3.gre }} |
+                    Verbal: {{ results.q3.gre_v }} | Writing: {{ results.q3.gre_aw }}
+                </span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">Average GPA of American students in Fall 2026:</span>
+                <span class="answer">Answer: {{ results.q4 }}</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">Acceptance rate for Fall 2026 entries:</span>
+                <span class="answer">Answer: {{ results.q5 }}%</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">Average GPA of Fall 2026 Acceptances:</span>
+                <span class="answer">Answer: {{ results.q6 }}</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">JHU Computer Science Masters applicants:</span>
+                <span class="answer">Answer: {{ results.q7 }} entries</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">PhD CS Acceptances (Target Universities - Standard vs LLM):</span>
+                <span class="answer">Standard Fields: {{ results.q8 }} | LLM Generated: {{ results.q9 }}</span>
+            </div>
+        </div>
+
+        <div class="actions-section">
+            <div class="action-box">
+                <form action="/pull_data" method="post"
+                    onsubmit="const btn = this.querySelector('button'); btn.disabled = true; btn.innerText = 'Running Pipeline... (Please Wait)'; const updateBtn = document.querySelector('.btn-update'); if(updateBtn) updateBtn.disabled = true;">
+                    <button type="submit" class="btn btn-pull">Pull Data</button>
+                    <p class="description">Scrapes the newest available data from Grad Cafe and adds it to your database
+                        in the background.</p>
+                </form>
+            </div>
+
+            <div class="action-box">
+                <button type="button" class="btn btn-update"
+                    onclick="window.location.href = window.location.pathname">Update Analysis</button>
+                <p class="description">Refreshes the page with the most up-to-date metrics from the database
+                    (Available if no data pull is active).</p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <p class="description">Total Records: <strong>{{ total_records }}</strong></p>
+        </div>
+    </div>
+
+</body>
+
+</html>
