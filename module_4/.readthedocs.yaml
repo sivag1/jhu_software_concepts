@@ -1,0 +1,19 @@
+# .readthedocs.yaml
+# Read the Docs configuration file
+version: 2
+
+# Set the OS and Python version
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.10"  # Adjust if you are using a different version (e.g., "3.9", "3.11")
+
+# Build documentation with Sphinx
+sphinx:
+  # Path to your conf.py file
+  configuration: module_4/docs/source/conf.py
+
+# Install dependencies
+python:
+  install:
+    - requirements: module_4/requirements.txt
