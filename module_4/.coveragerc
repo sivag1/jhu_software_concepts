@@ -1,0 +1,14 @@
+[run]
+source = module_4/src
+omit =
+    */subprocess/*
+    module_4/src/load_data.py
+    module_4/src/query_data.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
