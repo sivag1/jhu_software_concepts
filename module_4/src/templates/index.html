@@ -208,14 +208,14 @@
             <div class="action-box">
                 <form action="/pull_data" method="post"
                     onsubmit="const btn = this.querySelector('button'); btn.disabled = true; btn.innerText = 'Running Pipeline... (Please Wait)'; const updateBtn = document.querySelector('.btn-update'); if(updateBtn) updateBtn.disabled = true;">
-                    <button type="submit" class="btn btn-pull">Pull Data</button>
+                    <button type="submit" class="btn btn-pull" data-testid="pull-data-btn">Pull Data</button>
                     <p class="description">Scrapes the newest available data from Grad Cafe and adds it to your database
                         in the background.</p>
                 </form>
             </div>
 
             <div class="action-box">
-                <button type="button" class="btn btn-update"
+                <button type="button" class="btn btn-update" data-testid="update-analysis-btn"
                     onclick="window.location.href = window.location.pathname">Update Analysis</button>
                 <p class="description">Refreshes the page with the most up-to-date metrics from the database
                     (Available if no data pull is active).</p>

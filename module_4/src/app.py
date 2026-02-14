@@ -151,11 +151,9 @@ def pull_data():
         with pipeline_lock:
             # Run the data pipeline (Scrape -> Clean -> LLM -> Load)
             run_full_pipeline()
-            flash("Data pull completed successfully!", "success")
+            return {"ok": True}, 200
     except Exception as e:
-        flash(f"Data pull failed: {str(e)}", "error")
-        
-    return redirect(url_for('index'))
+        return {"error": str(e)}, 500
 
 if __name__ == '__main__':
     app.run(debug=True)

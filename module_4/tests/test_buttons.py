@@ -3,9 +3,9 @@ from module_4.src.app import pipeline_lock
 
 @pytest.mark.buttons
 def test_post_pull_data(client, mock_pipeline, mock_db):
-    """Test POST /pull-data returns 200 (redirect) and triggers loader."""
+    """Test POST /pull-data returns 200 and triggers loader."""
     response = client.post('/pull_data')
-    assert response.status_code == 302  # Redirects to index
+    assert response.status_code == 200
     mock_pipeline.assert_called_once()
 
 @pytest.mark.buttons
@@ -45,4 +45,4 @@ def test_pull_data_exception(client, mock_pipeline, mock_db):
     """Test that exceptions in pipeline are handled gracefully."""
     mock_pipeline.side_effect = Exception("Scraper failed")
     response = client.post('/pull_data')
-    assert response.status_code == 302 # Should still redirect with flash message
+    assert response.status_code == 500
