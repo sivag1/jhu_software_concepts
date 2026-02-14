@@ -50,11 +50,9 @@ jobs:
         echo "FLASK_SECRET_KEY=test_secret_key" >> $GITHUB_ENV
 
     - name: Run pytest
-      working-directory: module_4
       run: |
-        pytest -v
+        pytest module_4 -v
 
     - name: Verify test markers
-      working-directory: module_4
       run: |
-        pytest -m "web or buttons or analysis or db or integration" -v
+        pytest module_4 -m "web or buttons or analysis or db or integration" -v
