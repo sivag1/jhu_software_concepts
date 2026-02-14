@@ -2,24 +2,26 @@
 # This file configures which code is measured during test coverage analysis
 
 [run]
-# Source directory to measure coverage for
-source = src
+# Only measure coverage for app.py (the main application file)
+source = module_4.src.app
 
 # Files/directories to exclude from coverage measurement
 omit =
+    # Exclude test files
+    */tests/*
+    *\tests\*
     # Exclude subprocess scripts (scraper, cleaner, etc.) - these are external processes
     */subprocess/*
-    src/subprocess/*
+    *\subprocess\*
     # Exclude legacy/unused code from module_3 not imported in current codebase
-    src/load_data.py
-    */load_data.py
+    *load_data.py
     # Exclude query_data.py - legacy code
-    src/query_data.py
-    */query_data.py
+    *query_data.py
     # Exclude pipeline orchestration - subprocess execution can't be tested without
     # violating "no live internet/long-running scrapes" requirement
-    src/run_pipeline.py
-    */run_pipeline.py
+    *run_pipeline.py
+    module_4/src/run_pipeline.py
+    module_4\src\run_pipeline.py
 
 [report]
 # Lines matching these patterns are excluded from coverage reports
