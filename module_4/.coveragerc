@@ -3,33 +3,33 @@
 
 [run]
 # Source directory to measure coverage for
-source = module_4/src
+source = src
 
 # Files/directories to exclude from coverage measurement
 omit =
     # Exclude subprocess scripts (scraper, cleaner, etc.) - these are external processes
     */subprocess/*
-
-    # Exclude legacy/unused modules not imported in current codebase
-    module_4/src/load_data.py
-    module_4/src/query_data.py
-
+    src/subprocess/*
+    # Exclude legacy/unused code from module_3 not imported in current codebase
+    src/load_data.py
+    */load_data.py
+    # Exclude query_data.py - legacy code
+    src/query_data.py
+    */query_data.py
     # Exclude pipeline orchestration - subprocess execution can't be tested without
     # violating "no live internet/long-running scrapes" requirement
-    module_4/src/run_pipeline.py
+    src/run_pipeline.py
+    */run_pipeline.py
 
 [report]
 # Lines matching these patterns are excluded from coverage reports
 exclude_lines =
     # Standard pragma for intentionally uncovered code
     pragma: no cover
-
     # Don't require coverage for script entry points
     if __name__ == .__main__.:
-
     # Don't require coverage for debugging representations
     def __repr__
-
     # Don't require coverage for defensive assertions
     raise AssertionError
     raise NotImplementedError
