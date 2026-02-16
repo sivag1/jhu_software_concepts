@@ -11,3 +11,4 @@ module_3/subprocess/llm_hosting/models/
 module_3/subprocess/models/
 module_3/models
 .claude/
+CLAUDE.md

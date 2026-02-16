@@ -1,0 +1,25 @@
+(.venv) PS F:\Projects\jhu_software_concepts\module_4> pytest
+================================================= test session starts =================================================
+platform win32 -- Python 3.14.2, pytest-8.3.4, pluggy-1.5.0
+rootdir: F:\Projects\jhu_software_concepts\module_4
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-6.0.0, flask-1.3.0
+collected 14 items
+
+tests/test_analysis_format.py .                                                                                [  7%]
+tests/test_buttons.py ....                                                                                     [ 35%]
+tests/test_db_insert.py ...                                                                                    [ 57%]
+tests/test_flask_page.py ..                                                                                    [ 71%]
+tests/test_integration_end_to_end.py .                                                                         [ 78%]
+tests/test_pipeline.py ...                                                                                     [100%]
+
+---------- coverage: platform win32, python 3.14.2-final-0 -----------
+Name                           Stmts   Miss  Cover   Missing
+------------------------------------------------------------
+module_4\src\app.py               65      0   100%
+module_4\src\run_pipeline.py      35      0   100%
+------------------------------------------------------------
+TOTAL                            100      0   100%
+
+================================================= 14 passed in 0.45s =================================================
