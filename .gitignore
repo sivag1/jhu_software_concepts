@@ -17,3 +17,4 @@ module_5/src/subprocess/models/
 .claude/
 CLAUDE.md
 .venv/
+.github/instructions/snyk_rules.instructions.md
