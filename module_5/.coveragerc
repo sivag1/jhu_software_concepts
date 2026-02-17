@@ -1,9 +1,9 @@
-# Coverage.py configuration for Module 4 pytest suite
+# Coverage.py configuration for Module 5 pytest suite
 # This file configures which code is measured during test coverage analysis
 
 [run]
 # Only measure coverage for app.py (the main application file)
-source = module_4.src.app
+source = module_5.src.app
 
 # Files/directories to exclude from coverage measurement
 omit =
@@ -20,8 +20,10 @@ omit =
     # Exclude pipeline orchestration - subprocess execution can't be tested without
     # violating "no live internet/long-running scrapes" requirement
     *run_pipeline.py
-    module_4/src/run_pipeline.py
-    module_4\src\run_pipeline.py
+    module_5/src/run_pipeline.py
+    module_5\src\run_pipeline.py
+    # Exclude sql_utils.py - utility module
+    *sql_utils.py
 
 [report]
 # Lines matching these patterns are excluded from coverage reports

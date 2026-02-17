@@ -36,7 +36,7 @@ def test_end_to_end_flow(client, mock_pipeline, in_memory_db):
     # We need to patch render_template to verify the context passed to it
     with pytest.MonkeyPatch.context() as m:
         mock_render = MagicMock(return_value="ok")
-        m.setattr('module_4.src.app.render_template', mock_render)
+        m.setattr('module_5.src.app.render_template', mock_render)
         client.get('/')
         
         # Verify total_records passed to template matches our DB state

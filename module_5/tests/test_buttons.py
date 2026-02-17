@@ -1,5 +1,5 @@
 import pytest
-from module_4.src.app import pipeline_lock
+from module_5.src.app import pipeline_lock
 
 @pytest.mark.buttons
 def test_post_pull_data(client, mock_pipeline, mock_db):

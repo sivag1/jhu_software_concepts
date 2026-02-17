@@ -1,5 +1,5 @@
 import pytest
-from module_4.src.app import app
+from module_5.src.app import app
 
 @pytest.mark.web
 def test_app_factory_config(client):
@@ -21,7 +21,7 @@ def test_get_analysis_page_load(client, monkeypatch):
     Page text includes “Analysis” and at least one “Answer:”.
     """
     # Mock run_analysis_queries to return empty results and a count of 10
-    monkeypatch.setattr('module_4.src.app.run_analysis_queries', lambda: ({}, 10))
+    monkeypatch.setattr('module_5.src.app.run_analysis_queries', lambda: ({}, 10))
     
     # Mock render_template to return HTML structure with buttons and labels
     # This is required because the actual index.html template is not present in the test context.
@@ -35,7 +35,7 @@ def test_get_analysis_page_load(client, monkeypatch):
         </body>
     </html>
     """
-    monkeypatch.setattr('module_4.src.app.render_template', lambda t, **k: mock_html)
+    monkeypatch.setattr('module_5.src.app.render_template', lambda t, **k: mock_html)
     
     response = client.get('/')
     assert response.status_code == 200

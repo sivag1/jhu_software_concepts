@@ -115,7 +115,7 @@ _LLM: Llama | None = None
 
 def _load_llm() -> Llama:
     """Download (or reuse) the GGUF file and initialize llama.cpp."""
-    global _LLM
+    global _LLM  # pylint: disable=global-statement
     if _LLM is not None:
         return _LLM
 
@@ -297,28 +297,27 @@ def _cli_process_file(
     with open(in_path, "r", encoding="utf-8") as f:
         rows = _normalize_input(json.load(f))
 
-    sink = sys.stdout if to_stdout else None
-    if not to_stdout:
+    if to_stdout:
+        _write_rows(rows, sys.stdout)
+    else:
         out_path = out_path or (in_path + ".jsonl")
         mode = "a" if append else "w"
-        sink = open(out_path, mode, encoding="utf-8")
+        with open(out_path, mode, encoding="utf-8") as sink:
+            _write_rows(rows, sink)
 
-    assert sink is not None  # for type-checkers
 
-    try:
-        for row in rows:
-            program_text = (row or {}).get("program") or ""
-            university_text = (row or {}).get("university") or ""
-            result = _call_llm(program_text, university_text)
-            row["llm-generated-program"] = result["standardized_program"]
-            row["llm-generated-university"] = result["standardized_university"]
+def _write_rows(rows, sink):
+    """Write standardized rows as JSONL to the given sink."""
+    for row in rows:
+        program_text = (row or {}).get("program") or ""
+        university_text = (row or {}).get("university") or ""
+        result = _call_llm(program_text, university_text)
+        row["llm-generated-program"] = result["standardized_program"]
+        row["llm-generated-university"] = result["standardized_university"]
 
-            json.dump(row, sink, ensure_ascii=False)
-            sink.write("\n")
-            sink.flush()
-    finally:
-        if sink is not sys.stdout:
-            sink.close()
+        json.dump(row, sink, ensure_ascii=False)
+        sink.write("\n")
+        sink.flush()
 
 
 if __name__ == "__main__":

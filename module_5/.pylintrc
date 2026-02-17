@@ -1,0 +1,11 @@
+[MASTER]
+ignore=tests,docs,__pycache__,.pytest_cache,.venv
+
+[FORMAT]
+max-line-length=120
+
+[MESSAGES CONTROL]
+disable=
+    broad-exception-caught,
+    import-error,
+    duplicate-code

@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from module_4.src.app import run_analysis_queries
+from module_5.src.app import run_analysis_queries
 
 @pytest.mark.db
 def test_insert_on_pull(client, mock_pipeline, in_memory_db):

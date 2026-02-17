@@ -1,5 +1,5 @@
 import pytest
-from module_4.src.app import run_analysis_queries
+from module_5.src.app import run_analysis_queries
 
 @pytest.fixture
 def mock_query_results():
@@ -70,7 +70,7 @@ def test_page_formatting_integration(client, mock_db, monkeypatch):
         # Simulate how the template would render the percentage and label
         return f"<html><body>Answer: {results.get('q2')}%</body></html>"
 
-    monkeypatch.setattr('module_4.src.app.render_template', mock_render)
+    monkeypatch.setattr('module_5.src.app.render_template', mock_render)
 
     response = client.get('/')
     assert response.status_code == 200

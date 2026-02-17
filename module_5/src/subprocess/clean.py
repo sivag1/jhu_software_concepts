@@ -11,6 +11,8 @@ Date: January 2026
 import json
 import re
 import os
+
+
 class DataCleaner:
     """Cleans and standardizes GradCafe applicant data.
 
@@ -45,7 +47,7 @@ class DataCleaner:
         'SHOULD ensure data does not include any remnant HTML'.
         """
         cleaned_list = []
-        
+
         for entry in self.data:
             cleaned_entry = {}
             for key, value in entry.items():
@@ -61,7 +63,7 @@ class DataCleaner:
                     for extra_key, extra_value in extra_data.items():
                         cleaned_entry[extra_key] = self._clean_value(extra_value)
             cleaned_list.append(cleaned_entry)
-            
+
         self.data = cleaned_list
         print("Data sanitization complete.")
 
@@ -123,13 +125,16 @@ class DataCleaner:
             str: Cleaned program name with degree keywords removed.
         """
         value = self._clean_value(value)
-        
+
         # Remove common degree keywords (PhD, Masters, M.S., M.A., etc.)
-        value = re.sub(r'\s*(PhD|Master\'?s?|M\.S\.|M\.A\.|M\.B\.A\.|M\.D\.|M\.E\.)\s*', ' ', value, flags=re.I)
-        
+        value = re.sub(
+            r"\s*(PhD|Master'?s?|M\.S\.|M\.A\.|M\.B\.A\.|M\.D\.|M\.E\.)\s*",
+            ' ', value, flags=re.I
+        )
+
         # Clean up any resulting multiple spaces
         value = re.sub(r'\s+', ' ', value).strip()
-        
+
         return value
 
     def save_data(self, filename="cleaned_applicant_data.json"):
@@ -157,50 +162,51 @@ class DataCleaner:
                   'greV', 'greAW', 'US/International', 'term'.
         """
         data = {}
-        
+
         # Extract GPA (format: "GPA 3.91" or similar)
         gpa_match = re.search(r'GPA\s*([\d\.]+)', stats_text, re.I)
         if gpa_match:
             data['gpa'] = gpa_match.group(1)
-        
+
         # Extract GRE total score (format: "GRE 157" or similar)
         gre_match = re.search(r'GRE\s*(\d+)', stats_text, re.I)
         if gre_match:
             data['greScore'] = gre_match.group(1)
-        
+
         # Extract GRE Verbal score (format: "GRE V 163" or similar)
         gre_v_match = re.search(r'GRE V\s*(\d+)', stats_text, re.I)
         if gre_v_match:
             data['greV'] = gre_v_match.group(1)
-        
+
         # Extract GRE Analytical Writing score (format: "GRE AW 4.5" or similar)
         gre_aw_match = re.search(r'GRE AW\s*([\d\.]+)', stats_text, re.I)
         if gre_aw_match:
             data['greAW'] = gre_aw_match.group(1)
-        
+
         # Extract student type (International or American)
         if 'International' in stats_text:
             data['US/International'] = 'International'
         elif 'American' in stats_text:
             data['US/International'] = 'American'
-        
+
         # Extract semester and year (format: "Fall 2026" or similar)
         sem_year = re.search(r'(Fall|Spring|Summer|Winter)\s*(\d{4})', stats_text, re.I)
         if sem_year:
             # Combined term field
             data['term'] = sem_year.group(1) + " " + sem_year.group(2)
-            
+
         return data
+
 
 if __name__ == "__main__":
     # Initialize cleaner and run the data cleaning pipeline
     cleaner = DataCleaner()
-    
+
     # Step 1: Load raw data from the scraper output
     cleaner.load_data("applicant_data.json")
-    
+
     # Step 2: Clean and standardize all fields
     cleaner.clean_data()
-    
+
     # Step 3: Save cleaned data to output file
     cleaner.save_data("cleaned_applicant_data.json")

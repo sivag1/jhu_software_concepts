@@ -1,4 +1,4 @@
-name: Module 4 Tests
+name: Module 5 CI
 
 on:
   push:
@@ -8,9 +8,33 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  # Job 1: Pylint - enforce 10/10 score
+  pylint:
     runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pylint
+        pip install -r module_5/requirements.txt
+
+    - name: Run Pylint (fail under 10)
+      run: |
+        pylint module_5/src/app.py module_5/src/query_data.py module_5/src/load_data.py \
+          module_5/src/sql_utils.py module_5/load_new_data.py module_5/src/run_pipeline.py \
+          --rcfile=module_5/.pylintrc --fail-under=10
+
+  # Job 2: Pytest - run all tests
+  pytest:
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:15
@@ -39,7 +63,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pytest pytest-cov pytest-flask
-        pip install -r module_4/requirements.txt
+        pip install -r module_5/requirements.txt
 
     - name: Set environment variables
       run: |
@@ -51,8 +75,107 @@ jobs:
 
     - name: Run pytest
       run: |
-        pytest module_4 -v
+        pytest module_5 -v
 
-    - name: Verify test markers
+  # Job 3: Generate dependency graph
+  dependency-graph:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Graphviz and dependencies
       run: |
-        pytest module_4 -m "web or buttons or analysis or db or integration" -v
+        sudo apt-get update && sudo apt-get install -y graphviz
+        python -m pip install --upgrade pip
+        pip install pydeps
+        pip install -r module_5/requirements.txt
+
+    - name: Generate dependency.svg
+      run: |
+        pydeps module_5/src/app.py --noshow -T svg -o module_5/dependency.svg
+
+    - name: Verify dependency.svg exists
+      run: |
+        test -f module_5/dependency.svg || (echo "dependency.svg not found!" && exit 1)
+
+    - name: Upload dependency graph artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-graph
+        path: module_5/dependency.svg
+
+  # Job 4: Snyk dependency scan
+  snyk:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r module_5/requirements.txt
+
+    - name: Run Snyk security scan
+      uses: snyk/actions/python@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --file=module_5/requirements.txt --severity-threshold=high
+      continue-on-error: true
+
+  # Job 5: Pytest with markers
+  pytest-markers:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-flask
+        pip install -r module_5/requirements.txt
+
+    - name: Set environment variables
+      run: |
+        echo "DB_HOST=localhost" >> $GITHUB_ENV
+        echo "DB_NAME=testdb" >> $GITHUB_ENV
+        echo "DB_USER=testuser" >> $GITHUB_ENV
+        echo "DB_PASSWORD=testpass" >> $GITHUB_ENV
+        echo "FLASK_SECRET_KEY=test_secret_key" >> $GITHUB_ENV
+
+    - name: Run pytest with markers
+      run: |
+        pytest module_5 -m "web or buttons or analysis or db or integration" -v

@@ -10,5 +10,10 @@ module_3/subprocess/__pycache__/
 module_3/subprocess/llm_hosting/models/
 module_3/subprocess/models/
 module_3/models
+module_4/.env
+module_5/.env
+module_5/src/subprocess/llm_hosting/models/
+module_5/src/subprocess/models/
 .claude/
 CLAUDE.md
+.venv/
