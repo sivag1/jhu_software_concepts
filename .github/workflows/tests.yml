@@ -29,7 +29,7 @@ jobs:
     - name: Run Pylint (fail under 10)
       run: |
         pylint module_5/src/app.py module_5/src/query_data.py module_5/src/load_data.py \
-          module_5/src/sql_utils.py module_5/load_new_data.py module_5/src/run_pipeline.py \
+          module_5/src/sql_utils.py module_5/src/load_new_data.py module_5/src/run_pipeline.py \
           --rcfile=module_5/.pylintrc --fail-under=10
 
   # Job 2: Pytest - run all tests

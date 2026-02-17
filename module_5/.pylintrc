@@ -4,6 +4,9 @@ ignore=tests,docs,__pycache__,.pytest_cache,.venv
 [FORMAT]
 max-line-length=120
 
+[TYPECHECK]
+generated-members=psycopg.connect
+
 [MESSAGES CONTROL]
 disable=
     broad-exception-caught,
