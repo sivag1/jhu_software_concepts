@@ -13,8 +13,8 @@ from flask import Flask, render_template
 import psycopg
 from dotenv import load_dotenv
 
-from run_pipeline import run_full_pipeline
-from sql_utils import build_query
+from module_5.src.run_pipeline import run_full_pipeline
+from module_5.src.sql_utils import build_query
 
 load_dotenv()
 
