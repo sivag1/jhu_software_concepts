@@ -46,7 +46,8 @@ pytest module_5 -v
 ## Pylint
 
 ```bash
-pylint module_5/src/app.py module_5/src/query_data.py module_5/src/load_data.py module_5/src/sql_utils.py module_5/src/load_new_data.py module_5/src/run_pipeline.py --rcfile=module_5/.pylintrc
+cd module_5
+pylint src/ tests/
 ```
 
 ## Generating Dependency Graph
