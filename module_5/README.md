@@ -47,7 +47,7 @@ pytest module_5 -v
 
 ```bash
 cd module_5
-pylint src/ tests/
+pylint src/
 ```
 
 ## Generating Dependency Graph

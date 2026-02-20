@@ -47,27 +47,30 @@ def run_analysis_queries():
     cur = conn.cursor()
     results = {}
 
-    # 1. Fall 2026 entries
-    cur.execute(build_query(
-        "SELECT COUNT(*) FROM applicants WHERE term = 'Fall 2026'",
+    # 1. Fall 2026 entries — value bound via %s parameter
+    stmt = build_query(
+        "SELECT COUNT(*) FROM applicants WHERE term = %s",
         limit=1,
-    ))
+    )
+    cur.execute(stmt, ("Fall 2026",))
     results['q1'] = cur.fetchone()[0]
 
     # 2. % International students (not American or Other)
-    cur.execute(build_query(
+    stmt = build_query(
         "SELECT ROUND("
-        "(COUNT(*) FILTER (WHERE us_or_international NOT IN ('American', 'Other')) * 100.0) / "
+        "(COUNT(*) FILTER (WHERE us_or_international NOT IN (%s, %s)) * 100.0) / "
         "NULLIF(COUNT(*), 0), 2) FROM applicants",
         limit=1,
-    ))
+    )
+    cur.execute(stmt, ("American", "Other"))
     results['q2'] = cur.fetchone()[0]
 
-    # 3. Average GPA, GRE, GRE V, GRE AW
-    cur.execute(build_query(
+    # 3. Average GPA, GRE, GRE V, GRE AW — no user values, no params needed
+    stmt = build_query(
         "SELECT AVG(gpa), AVG(gre), AVG(gre_v), AVG(gre_aw) FROM applicants",
         limit=1,
-    ))
+    )
+    cur.execute(stmt)
     metrics = cur.fetchone()
     results['q3'] = {
         'gpa': round(metrics[0], 2) if metrics[0] else 0,
@@ -77,73 +80,90 @@ def run_analysis_queries():
     }
 
     # 4. Average GPA of American students in Fall 2026
-    cur.execute(build_query(
+    stmt = build_query(
         "SELECT AVG(gpa) FROM applicants "
-        "WHERE us_or_international = 'American' AND term = 'Fall 2026'",
+        "WHERE us_or_international = %s AND term = %s",
         limit=1,
-    ))
+    )
+    cur.execute(stmt, ("American", "Fall 2026"))
     res4 = cur.fetchone()[0]
     results['q4'] = round(res4, 2) if res4 else 0
 
     # 5. % Acceptances for Fall 2026
-    cur.execute(build_query(
+    stmt = build_query(
         "SELECT ROUND("
-        "(COUNT(*) FILTER (WHERE status ILIKE '%Accepted%' AND term = 'Fall 2026') * 100.0) / "
-        "NULLIF(COUNT(*) FILTER (WHERE term = 'Fall 2026'), 0), 2) FROM applicants",
+        "(COUNT(*) FILTER (WHERE status ILIKE %s AND term = %s) * 100.0) / "
+        "NULLIF(COUNT(*) FILTER (WHERE term = %s), 0), 2) FROM applicants",
         limit=1,
-    ))
+    )
+    cur.execute(stmt, ("%Accepted%", "Fall 2026", "Fall 2026"))
     results['q5'] = cur.fetchone()[0]
 
     # 6. Average GPA of Fall 2026 Acceptances
-    cur.execute(build_query(
+    stmt = build_query(
         "SELECT AVG(gpa) FROM applicants "
-        "WHERE term = 'Fall 2026' AND status ILIKE '%Accepted%'",
+        "WHERE term = %s AND status ILIKE %s",
         limit=1,
-    ))
+    )
+    cur.execute(stmt, ("Fall 2026", "%Accepted%"))
     res6 = cur.fetchone()[0]
     results['q6'] = round(res6, 2) if res6 else 0
 
     # 7. JHU MS CS entries
-    cur.execute(build_query(
+    stmt = build_query(
         "SELECT COUNT(*) FROM applicants "
-        "WHERE (university ILIKE '%Johns Hopkins%' OR university ILIKE '%JHU%') "
-        "AND degree ILIKE '%Masters%' "
-        "AND (program ILIKE '%Computer Science%' "
-        "OR llm_generated_program ILIKE '%Computer Science%')",
+        "WHERE (university ILIKE %s OR university ILIKE %s) "
+        "AND degree ILIKE %s "
+        "AND (program ILIKE %s "
+        "OR llm_generated_program ILIKE %s)",
         limit=1,
+    )
+    cur.execute(stmt, (
+        "%Johns Hopkins%", "%JHU%", "%Masters%",
+        "%Computer Science%", "%Computer Science%",
     ))
     results['q7'] = cur.fetchone()[0]
 
     # 8. Targeted PhD CS Acceptances (Original Fields)
-    cur.execute(build_query(
+    stmt = build_query(
         "SELECT COUNT(*) FROM applicants "
-        "WHERE term LIKE '%2025%' AND status ILIKE '%Accepted%' "
-        "AND degree ILIKE '%PhD%' "
-        "AND (university ILIKE '%Georgetown%' OR university ILIKE '%MIT%' "
-        "OR university ILIKE '%Stanford%' OR university ILIKE '%Carnegie Mellon%') "
-        "AND program ILIKE '%Computer Science%'",
+        "WHERE term LIKE %s AND status ILIKE %s "
+        "AND degree ILIKE %s "
+        "AND (university ILIKE %s OR university ILIKE %s "
+        "OR university ILIKE %s OR university ILIKE %s) "
+        "AND program ILIKE %s",
         limit=1,
+    )
+    cur.execute(stmt, (
+        "%2025%", "%Accepted%", "%PhD%",
+        "%Georgetown%", "%MIT%", "%Stanford%", "%Carnegie Mellon%",
+        "%Computer Science%",
     ))
     results['q8'] = cur.fetchone()[0]
 
     # 9. Targeted PhD CS Acceptances (LLM Fields)
-    cur.execute(build_query(
+    stmt = build_query(
         "SELECT COUNT(*) FROM applicants "
-        "WHERE term LIKE '%2025%' AND status ILIKE '%Accepted%' "
-        "AND degree ILIKE '%PhD%' "
-        "AND (llm_generated_university IN ("
-        "'Georgetown University', 'Massachusetts Institute of Technology', "
-        "'Stanford University', 'Carnegie Mellon University')) "
-        "AND llm_generated_program ILIKE '%Computer Science%'",
+        "WHERE term LIKE %s AND status ILIKE %s "
+        "AND degree ILIKE %s "
+        "AND llm_generated_university IN (%s, %s, %s, %s) "
+        "AND llm_generated_program ILIKE %s",
         limit=1,
+    )
+    cur.execute(stmt, (
+        "%2025%", "%Accepted%", "%PhD%",
+        "Georgetown University", "Massachusetts Institute of Technology",
+        "Stanford University", "Carnegie Mellon University",
+        "%Computer Science%",
     ))
     results['q9'] = cur.fetchone()[0]
 
-    # Total Records
-    cur.execute(build_query(
+    # Total Records — no user values, no params needed
+    stmt = build_query(
         "SELECT COUNT(*) FROM applicants",
         limit=1,
-    ))
+    )
+    cur.execute(stmt)
     total_records = cur.fetchone()[0]
 
     cur.close()
