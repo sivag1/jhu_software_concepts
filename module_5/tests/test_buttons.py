@@ -5,7 +5,8 @@ from module_5.src.app import pipeline_lock
 def test_post_pull_data(client, mock_pipeline, mock_db):
     """Test POST /pull-data returns 200 and triggers loader."""
     response = client.post('/pull_data')
-    assert response.status_code == 200
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/'
     mock_pipeline.assert_called_once()
 
 @pytest.mark.buttons

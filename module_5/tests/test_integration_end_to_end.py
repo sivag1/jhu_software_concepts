@@ -21,7 +21,7 @@ def test_end_to_end_flow(client, mock_pipeline, in_memory_db):
 
     # 2. POST /pull-data
     resp_pull = client.post('/pull_data')
-    assert resp_pull.status_code == 200
+    assert resp_pull.status_code == 302
     assert len(in_memory_db.rows) == 2
 
     # 3. POST /update-analysis
