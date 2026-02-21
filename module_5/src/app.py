@@ -9,7 +9,7 @@ for safe query construction with enforced LIMIT clauses.
 import os
 import threading
 
-from flask import Flask, render_template
+from flask import Flask, redirect, render_template, url_for
 import psycopg
 from dotenv import load_dotenv
 
@@ -204,7 +204,7 @@ def pull_data():
     try:
         with pipeline_lock:
             run_full_pipeline()
-            return {"ok": True}, 200
+            return redirect(url_for('index'))
     except Exception as exc:  # pylint: disable=broad-exception-caught
         return {"error": str(exc)}, 500
 
