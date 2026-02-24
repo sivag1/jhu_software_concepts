@@ -1,0 +1,10 @@
+[run]
+source = app
+
+[report]
+omit =
+    tests/*
+    */consumer.py
+    */etl/*
+    */db/*
+    */run.py

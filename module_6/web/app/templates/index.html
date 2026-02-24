@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grad School Cafe Data Analysis</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 40px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        header {
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .result-card {
+            background: #fff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            border-color: #3498db;
+        }
+
+        .question {
+            font-weight: bold;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .answer {
+            color: #27ae60;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .actions-section {
+            display: flex;
+            gap: 20px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .action-box {
+            flex: 1;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .btn-pull {
+            background-color: #e67e22;
+            color: white;
+        }
+
+        .btn-pull:hover {
+            background-color: #d35400;
+        }
+
+        .btn-update {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-update:hover {
+            background-color: #219150;
+        }
+
+        .btn:disabled {
+            background-color: #95a5a6 !important;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .description {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .alert {
+            padding: 15px;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-color: #ffeeba;
+        }
+
+        #status-banner {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Grad School Cafe Data Analysis</h1>
+        </header>
+
+        <div id="status-banner" class="alert alert-success"></div>
+
+        <div class="analysis-section">
+            <div class="result-card">
+                <span class="question">How many entries are in the database for Fall 2026?</span>
+                <span class="answer">Answer: {{ results.q1 }} entries</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">Percentage of International student entries (excluding American/Other):</span>
+                <span class="answer">Answer: {{ results.q2 }}%</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">Average Metrics (GPA, GRE Quant, GRE Verbal, GRE AW):</span>
+                <span class="answer">
+                    GPA: {{ results.q3.gpa }} | GRE: {{ results.q3.gre }} |
+                    Verbal: {{ results.q3.gre_v }} | Writing: {{ results.q3.gre_aw }}
+                </span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">Average GPA of American students in Fall 2026:</span>
+                <span class="answer">Answer: {{ results.q4 }}</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">Acceptance rate for Fall 2026 entries:</span>
+                <span class="answer">Answer: {{ results.q5 }}%</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">Average GPA of Fall 2026 Acceptances:</span>
+                <span class="answer">Answer: {{ results.q6 }}</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">JHU Computer Science Masters applicants:</span>
+                <span class="answer">Answer: {{ results.q7 }} entries</span>
+            </div>
+
+            <div class="result-card">
+                <span class="question">PhD CS Acceptances (Target Universities - Standard vs LLM):</span>
+                <span class="answer">Standard Fields: {{ results.q8 }} | LLM Generated: {{ results.q9 }}</span>
+            </div>
+        </div>
+
+        <div class="actions-section">
+            <div class="action-box">
+                <button type="button" class="btn btn-pull" data-testid="pull-data-btn"
+                    onclick="enqueueTask('/scrape', this)">Pull Data</button>
+                <p class="description">Queues a background scrape of new data from Grad Cafe via RabbitMQ.</p>
+            </div>
+
+            <div class="action-box">
+                <button type="button" class="btn btn-update" data-testid="update-analysis-btn"
+                    onclick="enqueueTask('/recompute', this)">Update Analysis</button>
+                <p class="description">Queues a background recompute of analytics, then reload to see updated results.
+                </p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <p class="description">Total Records: <strong>{{ total_records }}</strong></p>
+        </div>
+    </div>
+
+    <script>
+        function enqueueTask(url, btn) {
+            btn.disabled = true;
+            var banner = document.getElementById('status-banner');
+            fetch(url, { method: 'POST' })
+                .then(function (resp) { return resp.json(); })
+                .then(function (data) {
+                    banner.style.display = 'block';
+                    if (data.status === 'queued') {
+                        banner.className = 'alert alert-success';
+                        banner.textContent = 'Request queued: ' + data.task;
+                        setTimeout(function () { window.location.reload(); }, 3000);
+                    } else {
+                        banner.className = 'alert alert-warning';
+                        banner.textContent = 'Error: ' + (data.error || 'unknown');
+                        btn.disabled = false;
+                    }
+                })
+                .catch(function () {
+                    banner.style.display = 'block';
+                    banner.className = 'alert alert-warning';
+                    banner.textContent = 'Network error — is the server running?';
+                    btn.disabled = false;
+                });
+        }
+    </script>
+
+</body>
+
+</html>
