@@ -13,8 +13,6 @@ from flask import Flask, jsonify, render_template, current_app
 import psycopg
 from psycopg import sql
 
-import pika
-
 from publisher import publish_task
 
 
@@ -203,7 +201,7 @@ def create_app(test_config=None):
         try:
             publish_task("scrape_new_data", payload={})
             return jsonify({"status": "queued", "task": "scrape_new_data"}), 202
-        except (ConnectionError, pika.exceptions.AMQPError):
+        except (ConnectionError, Exception):  # pylint: disable=broad-exception-caught
             current_app.logger.exception("Failed to publish scrape_new_data")
             return jsonify({"error": "publish_failed"}), 503
 
@@ -213,7 +211,7 @@ def create_app(test_config=None):
         try:
             publish_task("recompute_analytics", payload={})
             return jsonify({"status": "queued", "task": "recompute_analytics"}), 202
-        except (ConnectionError, pika.exceptions.AMQPError):
+        except (ConnectionError, Exception):  # pylint: disable=broad-exception-caught
             current_app.logger.exception("Failed to publish recompute_analytics")
             return jsonify({"error": "publish_failed"}), 503
 
