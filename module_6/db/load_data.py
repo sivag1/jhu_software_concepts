@@ -31,13 +31,20 @@ def load_data(json_path=None, db_url=None):
         print(f"Error: File {json_path} not found.")
         return
 
-    # Read data — support both JSON array and NDJSON formats
+    # Read data — support JSON array, NDJSON, and concatenated JSON objects
     with open(json_path, "r", encoding="utf-8") as f:
         content = f.read().strip()
         if content.startswith("["):
             data = json.loads(content)
         else:
-            data = [json.loads(line) for line in content.splitlines() if line.strip()]
+            # Try NDJSON first (one object per line)
+            try:
+                data = [json.loads(line) for line in content.splitlines() if line.strip()]
+            except json.JSONDecodeError:
+                # Concatenated multi-line JSON objects — wrap in array with commas
+                # Insert commas between adjacent top-level objects: "}\n{" -> "},\n{"
+                wrapped = "[" + content.replace("}\n{", "},\n{") + "]"
+                data = json.loads(wrapped)
 
     conn = psycopg.connect(db_url)
     cur = conn.cursor()

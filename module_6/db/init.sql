@@ -19,8 +19,7 @@ CREATE TABLE IF NOT EXISTS applicants (
     llm_generated_university TEXT
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_applicants_url
-    ON applicants (url) WHERE url IS NOT NULL;
+ALTER TABLE applicants ADD CONSTRAINT applicants_url_unique UNIQUE (url);
 
 CREATE TABLE IF NOT EXISTS ingestion_watermarks (
     source TEXT PRIMARY KEY,

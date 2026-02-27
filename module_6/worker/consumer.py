@@ -68,6 +68,38 @@ def _determine_degree(prog):
     return "Other"
 
 
+def _parse_stats(stats_text):
+    """Parse GPA, GRE scores, term, and student type from raw stats text."""
+    data = {}
+
+    gpa_match = re.search(r"GPA\s*([\d.]+)", stats_text, re.I)
+    if gpa_match:
+        data["gpa"] = gpa_match.group(1)
+
+    gre_match = re.search(r"GRE\s*(\d+)", stats_text, re.I)
+    if gre_match:
+        data["greScore"] = gre_match.group(1)
+
+    gre_v_match = re.search(r"GRE V\s*(\d+)", stats_text, re.I)
+    if gre_v_match:
+        data["greV"] = gre_v_match.group(1)
+
+    gre_aw_match = re.search(r"GRE AW\s*([\d.]+)", stats_text, re.I)
+    if gre_aw_match:
+        data["greAW"] = gre_aw_match.group(1)
+
+    if "International" in stats_text:
+        data["US/International"] = "International"
+    elif "American" in stats_text:
+        data["US/International"] = "American"
+
+    sem_year = re.search(r"(Fall|Spring|Summer|Winter)\s*(\d{4})", stats_text, re.I)
+    if sem_year:
+        data["term"] = sem_year.group(1) + " " + sem_year.group(2)
+
+    return data
+
+
 def _scrape_new_records(existing_urls, max_pages=50):
     """Scrape GradCafe for records not already in existing_urls.
 
@@ -109,6 +141,14 @@ def _scrape_new_records(existing_urls, max_pages=50):
             if i + 2 < len(rows) and len(rows[i + 2].find_all("td")) == 1:
                 comments = rows[i + 2].get_text(strip=True)[:500]
 
+            # Collect raw text from this row and adjacent rows for stats parsing
+            stats_text = rows[i].get_text(" ", strip=True)
+            if i + 1 < len(rows):
+                stats_text += " " + rows[i + 1].get_text(" ", strip=True)
+            if i + 2 < len(rows):
+                stats_text += " " + rows[i + 2].get_text(" ", strip=True)
+            parsed = _parse_stats(stats_text)
+
             records.append({
                 "university": re.sub(r"Report$", "", tds[0].get_text(strip=True)).strip(),
                 "program": tds[1].get_text(strip=True),
@@ -118,6 +158,12 @@ def _scrape_new_records(existing_urls, max_pages=50):
                 "date_added": tds[2].get_text(strip=True),
                 "url": entry_url,
                 "comments": comments,
+                "term": parsed.get("term"),
+                "US/International": parsed.get("US/International"),
+                "gpa": parsed.get("gpa"),
+                "greScore": parsed.get("greScore"),
+                "greV": parsed.get("greV"),
+                "greAW": parsed.get("greAW"),
             })
 
         if stop:
