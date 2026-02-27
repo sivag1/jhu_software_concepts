@@ -63,7 +63,8 @@ def run_queries():
     cur.execute(build_query(
         "SELECT COUNT(*) FROM applicants "
         "WHERE (university ILIKE '%Johns Hopkins%' OR university ILIKE '%JHU%') "
-        "AND (program ILIKE '%Computer Science%' OR llm_generated_program ILIKE '%Computer Science%') "
+        "AND (program ILIKE '%Computer Science%' "
+        "OR llm_generated_program ILIKE '%Computer Science%') "
         "AND degree ILIKE '%Masters%'", 1))
     print(f"7. JHU MS CS entries: {cur.fetchone()[0]}")
 

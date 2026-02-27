@@ -54,6 +54,35 @@ def determine_degree(prog):
     return "Other"
 
 
+def _extract_entry_url(row):
+    """Extract the full GradCafe URL from a table row, or None."""
+    link = row.find("a", href=re.compile(r"/result/\\d+"))
+    if link and "href" in link.attrs:
+        path = link["href"]
+        return f"https://www.thegradcafe.com{path}" if path.startswith("/") else path
+    return None
+
+
+def _parse_row(row, rows, row_index):
+    """Parse a single table row into a record dict."""
+    tds = row.find_all("td")
+    decision, dec_date = parse_decision(tds[3].get_text(strip=True))
+    comments = ""
+    if row_index + 2 < len(rows) and len(rows[row_index + 2].find_all("td")) == 1:
+        comments = rows[row_index + 2].get_text(strip=True)[:500]
+
+    return {
+        "university": re.sub(r"Report$", "", tds[0].get_text(strip=True)).strip(),
+        "program": tds[1].get_text(strip=True),
+        "degree": determine_degree(tds[1].get_text(strip=True)),
+        "status": decision,
+        "decisionDate": dec_date,
+        "date_added": tds[2].get_text(strip=True),
+        "url": _extract_entry_url(row),
+        "comments": comments,
+    }
+
+
 def scrape_new_records(existing_urls, max_pages=50):
     """Scrape GradCafe for records whose URL is not in existing_urls.
 
@@ -68,7 +97,7 @@ def scrape_new_records(existing_urls, max_pages=50):
     for page in range(1, max_pages + 1):
         try:
             html = fetch_page(page)
-        except Exception:
+        except (OSError, ValueError):
             break
 
         soup = BeautifulSoup(html, "html.parser")
@@ -83,33 +112,12 @@ def scrape_new_records(existing_urls, max_pages=50):
             if len(tds) < 4:
                 continue
 
-            link = rows[i].find("a", href=re.compile(r"/result/\d+"))
-            entry_url = None
-            if link and "href" in link.attrs:
-                path = link["href"]
-                entry_url = (
-                    f"https://www.thegradcafe.com{path}" if path.startswith("/") else path
-                )
-
+            entry_url = _extract_entry_url(rows[i])
             if entry_url and entry_url in existing_urls:
                 stop = True
                 break
 
-            decision, dec_date = parse_decision(tds[3].get_text(strip=True))
-            comments = ""
-            if i + 2 < len(rows) and len(rows[i + 2].find_all("td")) == 1:
-                comments = rows[i + 2].get_text(strip=True)[:500]
-
-            records.append({
-                "university": re.sub(r"Report$", "", tds[0].get_text(strip=True)).strip(),
-                "program": tds[1].get_text(strip=True),
-                "degree": determine_degree(tds[1].get_text(strip=True)),
-                "status": decision,
-                "decisionDate": dec_date,
-                "date_added": tds[2].get_text(strip=True),
-                "url": entry_url,
-                "comments": comments,
-            })
+            records.append(_parse_row(rows[i], rows, i))
 
         if stop:
             break

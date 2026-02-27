@@ -13,7 +13,138 @@ from flask import Flask, jsonify, render_template, current_app
 import psycopg
 from psycopg import sql
 
+import pika
+
 from publisher import publish_task
+
+
+def _clamp_limit(limit=100):
+    """Clamp a LIMIT value to [1, 100]."""
+    return max(1, min(100, int(limit)))
+
+
+def _build_query(query_str, limit=100):
+    """Wrap a SQL string in sql.SQL and append a clamped LIMIT."""
+    clamped = _clamp_limit(limit)
+    return sql.SQL("{query} LIMIT {limit}").format(
+        query=sql.SQL(query_str),
+        limit=sql.Literal(clamped),
+    )
+
+
+def _run_core_queries(cur):
+    """Execute the core analysis queries and return a results dict."""
+    results = {}
+
+    stmt = _build_query(
+        "SELECT COUNT(*) FROM applicants WHERE term = %s", limit=1,
+    )
+    cur.execute(stmt, ("Fall 2026",))
+    results["q1"] = cur.fetchone()[0]
+
+    stmt = _build_query(
+        "SELECT ROUND("
+        "(COUNT(*) FILTER (WHERE us_or_international NOT IN (%s, %s)) * 100.0) / "
+        "NULLIF(COUNT(*), 0), 2) FROM applicants",
+        limit=1,
+    )
+    cur.execute(stmt, ("American", "Other"))
+    results["q2"] = cur.fetchone()[0]
+
+    stmt = _build_query(
+        "SELECT AVG(gpa), AVG(gre), AVG(gre_v), AVG(gre_aw) FROM applicants",
+        limit=1,
+    )
+    cur.execute(stmt)
+    metrics = cur.fetchone()
+    results["q3"] = {
+        "gpa": round(metrics[0], 2) if metrics[0] else 0,
+        "gre": round(metrics[1], 2) if metrics[1] else 0,
+        "gre_v": round(metrics[2], 2) if metrics[2] else 0,
+        "gre_aw": round(metrics[3], 2) if metrics[3] else 0,
+    }
+
+    stmt = _build_query(
+        "SELECT AVG(gpa) FROM applicants "
+        "WHERE us_or_international = %s AND term = %s",
+        limit=1,
+    )
+    cur.execute(stmt, ("American", "Fall 2026"))
+    res4 = cur.fetchone()[0]
+    results["q4"] = round(res4, 2) if res4 else 0
+
+    return results
+
+
+def _run_acceptance_queries(cur):
+    """Execute acceptance and program-specific queries and return a results dict."""
+    results = {}
+
+    stmt = _build_query(
+        "SELECT ROUND("
+        "(COUNT(*) FILTER (WHERE status ILIKE %s AND term = %s) * 100.0) / "
+        "NULLIF(COUNT(*) FILTER (WHERE term = %s), 0), 2) FROM applicants",
+        limit=1,
+    )
+    cur.execute(stmt, ("%Accepted%", "Fall 2026", "Fall 2026"))
+    results["q5"] = cur.fetchone()[0]
+
+    stmt = _build_query(
+        "SELECT AVG(gpa) FROM applicants "
+        "WHERE term = %s AND status ILIKE %s",
+        limit=1,
+    )
+    cur.execute(stmt, ("Fall 2026", "%Accepted%"))
+    res6 = cur.fetchone()[0]
+    results["q6"] = round(res6, 2) if res6 else 0
+
+    stmt = _build_query(
+        "SELECT COUNT(*) FROM applicants "
+        "WHERE (university ILIKE %s OR university ILIKE %s) "
+        "AND degree ILIKE %s "
+        "AND (program ILIKE %s "
+        "OR llm_generated_program ILIKE %s)",
+        limit=1,
+    )
+    cur.execute(stmt, (
+        "%Johns Hopkins%", "%JHU%", "%Masters%",
+        "%Computer Science%", "%Computer Science%",
+    ))
+    results["q7"] = cur.fetchone()[0]
+
+    stmt = _build_query(
+        "SELECT COUNT(*) FROM applicants "
+        "WHERE term LIKE %s AND status ILIKE %s "
+        "AND degree ILIKE %s "
+        "AND (university ILIKE %s OR university ILIKE %s "
+        "OR university ILIKE %s OR university ILIKE %s) "
+        "AND program ILIKE %s",
+        limit=1,
+    )
+    cur.execute(stmt, (
+        "%2025%", "%Accepted%", "%PhD%",
+        "%Georgetown%", "%MIT%", "%Stanford%", "%Carnegie Mellon%",
+        "%Computer Science%",
+    ))
+    results["q8"] = cur.fetchone()[0]
+
+    stmt = _build_query(
+        "SELECT COUNT(*) FROM applicants "
+        "WHERE term LIKE %s AND status ILIKE %s "
+        "AND degree ILIKE %s "
+        "AND llm_generated_university IN (%s, %s, %s, %s) "
+        "AND llm_generated_program ILIKE %s",
+        limit=1,
+    )
+    cur.execute(stmt, (
+        "%2025%", "%Accepted%", "%PhD%",
+        "Georgetown University", "Massachusetts Institute of Technology",
+        "Stanford University", "Carnegie Mellon University",
+        "%Computer Science%",
+    ))
+    results["q9"] = cur.fetchone()[0]
+
+    return results
 
 
 def create_app(test_config=None):
@@ -36,126 +167,15 @@ def create_app(test_config=None):
         """Return a psycopg connection using DATABASE_URL."""
         return psycopg.connect(os.environ.get("DATABASE_URL", ""))
 
-    def clamp_limit(limit=100):
-        """Clamp a LIMIT value to [1, 100]."""
-        return max(1, min(100, int(limit)))
-
-    def build_query(query_str, limit=100):
-        """Wrap a SQL string in sql.SQL and append a clamped LIMIT."""
-        clamped = clamp_limit(limit)
-        return sql.SQL("{query} LIMIT {limit}").format(
-            query=sql.SQL(query_str),
-            limit=sql.Literal(clamped),
-        )
-
     def run_analysis_queries():
         """Run analytical queries and return (results_dict, total_records)."""
         conn = get_db_connection()
         cur = conn.cursor()
-        results = {}
 
-        stmt = build_query(
-            "SELECT COUNT(*) FROM applicants WHERE term = %s", limit=1,
-        )
-        cur.execute(stmt, ("Fall 2026",))
-        results["q1"] = cur.fetchone()[0]
+        results = _run_core_queries(cur)
+        results.update(_run_acceptance_queries(cur))
 
-        stmt = build_query(
-            "SELECT ROUND("
-            "(COUNT(*) FILTER (WHERE us_or_international NOT IN (%s, %s)) * 100.0) / "
-            "NULLIF(COUNT(*), 0), 2) FROM applicants",
-            limit=1,
-        )
-        cur.execute(stmt, ("American", "Other"))
-        results["q2"] = cur.fetchone()[0]
-
-        stmt = build_query(
-            "SELECT AVG(gpa), AVG(gre), AVG(gre_v), AVG(gre_aw) FROM applicants",
-            limit=1,
-        )
-        cur.execute(stmt)
-        metrics = cur.fetchone()
-        results["q3"] = {
-            "gpa": round(metrics[0], 2) if metrics[0] else 0,
-            "gre": round(metrics[1], 2) if metrics[1] else 0,
-            "gre_v": round(metrics[2], 2) if metrics[2] else 0,
-            "gre_aw": round(metrics[3], 2) if metrics[3] else 0,
-        }
-
-        stmt = build_query(
-            "SELECT AVG(gpa) FROM applicants "
-            "WHERE us_or_international = %s AND term = %s",
-            limit=1,
-        )
-        cur.execute(stmt, ("American", "Fall 2026"))
-        res4 = cur.fetchone()[0]
-        results["q4"] = round(res4, 2) if res4 else 0
-
-        stmt = build_query(
-            "SELECT ROUND("
-            "(COUNT(*) FILTER (WHERE status ILIKE %s AND term = %s) * 100.0) / "
-            "NULLIF(COUNT(*) FILTER (WHERE term = %s), 0), 2) FROM applicants",
-            limit=1,
-        )
-        cur.execute(stmt, ("%Accepted%", "Fall 2026", "Fall 2026"))
-        results["q5"] = cur.fetchone()[0]
-
-        stmt = build_query(
-            "SELECT AVG(gpa) FROM applicants "
-            "WHERE term = %s AND status ILIKE %s",
-            limit=1,
-        )
-        cur.execute(stmt, ("Fall 2026", "%Accepted%"))
-        res6 = cur.fetchone()[0]
-        results["q6"] = round(res6, 2) if res6 else 0
-
-        stmt = build_query(
-            "SELECT COUNT(*) FROM applicants "
-            "WHERE (university ILIKE %s OR university ILIKE %s) "
-            "AND degree ILIKE %s "
-            "AND (program ILIKE %s "
-            "OR llm_generated_program ILIKE %s)",
-            limit=1,
-        )
-        cur.execute(stmt, (
-            "%Johns Hopkins%", "%JHU%", "%Masters%",
-            "%Computer Science%", "%Computer Science%",
-        ))
-        results["q7"] = cur.fetchone()[0]
-
-        stmt = build_query(
-            "SELECT COUNT(*) FROM applicants "
-            "WHERE term LIKE %s AND status ILIKE %s "
-            "AND degree ILIKE %s "
-            "AND (university ILIKE %s OR university ILIKE %s "
-            "OR university ILIKE %s OR university ILIKE %s) "
-            "AND program ILIKE %s",
-            limit=1,
-        )
-        cur.execute(stmt, (
-            "%2025%", "%Accepted%", "%PhD%",
-            "%Georgetown%", "%MIT%", "%Stanford%", "%Carnegie Mellon%",
-            "%Computer Science%",
-        ))
-        results["q8"] = cur.fetchone()[0]
-
-        stmt = build_query(
-            "SELECT COUNT(*) FROM applicants "
-            "WHERE term LIKE %s AND status ILIKE %s "
-            "AND degree ILIKE %s "
-            "AND llm_generated_university IN (%s, %s, %s, %s) "
-            "AND llm_generated_program ILIKE %s",
-            limit=1,
-        )
-        cur.execute(stmt, (
-            "%2025%", "%Accepted%", "%PhD%",
-            "Georgetown University", "Massachusetts Institute of Technology",
-            "Stanford University", "Carnegie Mellon University",
-            "%Computer Science%",
-        ))
-        results["q9"] = cur.fetchone()[0]
-
-        stmt = build_query("SELECT COUNT(*) FROM applicants", limit=1)
+        stmt = _build_query("SELECT COUNT(*) FROM applicants", limit=1)
         cur.execute(stmt)
         total_records = cur.fetchone()[0]
 
@@ -166,7 +186,7 @@ def create_app(test_config=None):
     # Attach helpers to app so tests can access them
     app.get_db_connection = get_db_connection
     app.run_analysis_queries = run_analysis_queries
-    app.build_query = build_query
+    app.build_query = _build_query
 
     # ------------------------------------------------------------------ routes
     @app.route("/")
@@ -183,7 +203,7 @@ def create_app(test_config=None):
         try:
             publish_task("scrape_new_data", payload={})
             return jsonify({"status": "queued", "task": "scrape_new_data"}), 202
-        except Exception:
+        except (ConnectionError, pika.exceptions.AMQPError):
             current_app.logger.exception("Failed to publish scrape_new_data")
             return jsonify({"error": "publish_failed"}), 503
 
@@ -193,7 +213,7 @@ def create_app(test_config=None):
         try:
             publish_task("recompute_analytics", payload={})
             return jsonify({"status": "queued", "task": "recompute_analytics"}), 202
-        except Exception:
+        except (ConnectionError, pika.exceptions.AMQPError):
             current_app.logger.exception("Failed to publish recompute_analytics")
             return jsonify({"error": "publish_failed"}), 503
 

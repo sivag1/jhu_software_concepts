@@ -1,0 +1,13 @@
+[MASTER]
+extension-pkg-allow-list=psycopg
+
+[TYPECHECK]
+# psycopg.connect() returns a Connection whose cursor/commit/rollback/close
+# are dynamically resolved; pylint cannot infer them.
+generated-members=cursor,commit,rollback,close
+
+# pika is only installed inside Docker containers, not in the local venv.
+ignored-modules=pika,pika.exceptions
+
+[MESSAGES CONTROL]
+disable=duplicate-code
