@@ -32,16 +32,20 @@ docker compose up --build
 
 ## Docker Hub
 
-Images are published to Docker Hub:
+Images are published to [avis777/module_6](https://hub.docker.com/r/avis777/module_6) on Docker Hub:
 
-- `<your-dockerhub-username>/module_6:web-v1`
-- `<your-dockerhub-username>/module_6:worker-v1`
+- `avis777/module_6:v1-web`
+- `avis777/module_6:v1-worker`
+- `avis777/module_6:v1-db`
+- `avis777/module_6:v1-rabbitmq`
 
 ### Pull and run from registry
 
 ```bash
-docker pull <your-dockerhub-username>/module_6:web-v1
-docker pull <your-dockerhub-username>/module_6:worker-v1
+docker pull avis777/module_6:v1-web
+docker pull avis777/module_6:v1-worker
+docker pull avis777/module_6:v1-db
+docker pull avis777/module_6:v1-rabbitmq
 ```
 
 ## Data Flow
@@ -63,15 +67,34 @@ User clicks "Update Analysis" button
         → basic_ack
 ```
 
+## Linting
+
+```bash
+# From repo root — requires pylint installed
+pylint module_6/web/ module_6/worker/ module_6/db/
+```
+
+Pylint configuration lives in the repo-root `.pylintrc`. Current target: **10.00/10**.
+
 ## Running Tests
 
 ```bash
+# Install test dependencies
 pip install -r requirements-test.txt
-cd module_6
-python -m pytest -v
+
+# Run all tests with coverage (from repo root)
+pytest module_6/tests/ -v
+
+# Run tests by marker
+pytest module_6/tests/ -m web -v
+pytest module_6/tests/ -m buttons -v
+pytest module_6/tests/ -m analysis -v
+pytest module_6/tests/ -m db -v
+pytest module_6/tests/ -m integration -v
 ```
 
 Tests enforce 100% code coverage on the Flask app (`web/app/__init__.py`).
+Coverage settings are configured in `pytest.ini` (addopts) and `.coveragerc`.
 
 ## Environment Variables
 
